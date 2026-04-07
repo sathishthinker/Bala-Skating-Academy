@@ -82,6 +82,8 @@ def unique_slug(title, model):
 
 @app.context_processor
 def inject_site():
+    about_photo = 'images/about.jpg' if os.path.exists(
+        os.path.join(BASE_DIR, 'static', 'images', 'about.jpg')) else None
     return dict(
         site_name='Bala Skating Academy',
         site_phone='+91 91592 17517',
@@ -89,6 +91,7 @@ def inject_site():
         site_timings='Monday – Sunday: 5:30 PM – 7:00 PM',
         site_whatsapp='919159217517',
         now=datetime.utcnow(),
+        about_photo=about_photo,
         unread_count=Inquiry.query.filter_by(is_read=False).count() if app.config.get('SQLALCHEMY_DATABASE_URI') else 0
     )
 
@@ -165,6 +168,27 @@ def contact():
             flash('Thank you! We will get back to you soon.', 'success')
             return redirect(url_for('contact'))
     return render_template('contact.html')
+
+
+# ---------------------------------------------------------------------------
+# Admin – Site settings (about photo, etc.)
+# ---------------------------------------------------------------------------
+
+ABOUT_PHOTO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'about.jpg')
+
+@app.route('/admin/settings/about-photo', methods=['POST'])
+@login_required
+def admin_upload_about_photo():
+    file = request.files.get('about_photo')
+    if file and allowed_file(file.filename):
+        img = Image.open(file)
+        img = img.convert('RGB')
+        img.thumbnail((900, 700), Image.LANCZOS)
+        img.save(ABOUT_PHOTO_PATH, quality=88, optimize=True)
+        flash('About photo updated!', 'success')
+    else:
+        flash('Please select a valid image file.', 'danger')
+    return redirect(url_for('admin_dashboard'))
 
 
 # ---------------------------------------------------------------------------

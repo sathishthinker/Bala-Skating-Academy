@@ -50,9 +50,16 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-6" data-aos="fade-right">
         <div class="about-img-wrap">
-          <div class="about-img-placeholder d-flex align-items-center justify-content-center">
-            <i class="bi bi-person-arms-up display-1 text-accent opacity-50"></i>
+          {% if about_photo %}
+          <div class="about-img-main">
+            <img src="{{ url_for('static', filename=about_photo) }}" alt="Bala Skating Academy" class="about-real-img" />
           </div>
+          {% else %}
+          <div class="about-img-fallback d-flex align-items-center justify-content-center flex-column gap-3">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Bala Skating Academy" style="max-width:220px;" />
+            <p class="text-muted small mb-0">Upload a photo from <a href="{{ url_for('admin_dashboard') }}">Admin → Dashboard</a></p>
+          </div>
+          {% endif %}
           <div class="about-badge">
             <i class="bi bi-trophy-fill text-accent"></i>
             <span>Award-Winning Coaching</span>

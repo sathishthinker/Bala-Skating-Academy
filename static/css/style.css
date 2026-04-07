@@ -202,13 +202,27 @@ body {
 
 /* ===== ABOUT SNIPPET ===== */
 .about-img-wrap { position: relative; border-radius: var(--radius-lg); }
-.about-img-placeholder {
+.about-img-main {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 420px;
+}
+.about-real-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.about-real-img:hover { transform: scale(1.03); }
+.about-img-fallback {
   background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
   border-radius: var(--radius-lg);
   height: 420px;
   border: 2px dashed var(--border);
 }
-.about-img-wrap.large .about-img-placeholder { height: 480px; }
+.about-img-wrap.large .about-img-main,
+.about-img-wrap.large .about-img-fallback { height: 480px; }
 .about-badge {
   position: absolute;
   bottom: 20px;
