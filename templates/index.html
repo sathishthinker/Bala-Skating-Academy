@@ -54,7 +54,11 @@
         <div class="about-img-wrap">
           {% if about_photo %}
           <div class="about-img-main">
+            {% if about_photo_is_url %}
+            <img src="{{ about_photo }}" alt="Bala Skating Academy" class="about-real-img" />
+            {% else %}
             <img src="{{ url_for('static', filename=about_photo) }}" alt="Bala Skating Academy" class="about-real-img" />
+            {% endif %}
           </div>
           {% else %}
           <div class="about-img-fallback d-flex align-items-center justify-content-center flex-column gap-3">

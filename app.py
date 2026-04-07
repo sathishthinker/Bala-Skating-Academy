@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -7,16 +8,29 @@ from slugify import slugify
 from PIL import Image
 from datetime import datetime
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
 
 load_dotenv()
 
-from models import db, Admin, Photo, Story, Program, Inquiry
+from models import db, Admin, Photo, Story, Program, Inquiry, SiteSetting
 
 # ---------------------------------------------------------------------------
 # App setup
 # ---------------------------------------------------------------------------
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# ---------------------------------------------------------------------------
+# Cloudinary config (set CLOUDINARY_CLOUD_NAME, _API_KEY, _API_SECRET in env)
+# ---------------------------------------------------------------------------
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
+    secure=True
+)
+USE_CLOUDINARY = bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'bala-skating-secret-change-in-prod')
@@ -54,16 +68,53 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def save_image(file, folder, max_size=(1200, 900)):
-    """Save uploaded image, resize if needed, return unique filename."""
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    filepath = os.path.join(folder, filename)
-    img = Image.open(file)
-    img = img.convert('RGB')
-    img.thumbnail(max_size, Image.LANCZOS)
-    img.save(filepath, quality=85, optimize=True)
-    return filename
+def upload_image(file, subfolder='gallery', max_size=(1200, 900)):
+    """Upload image to Cloudinary (prod) or local disk (dev). Returns URL or filename."""
+    if USE_CLOUDINARY:
+        result = cloudinary.uploader.upload(
+            file,
+            folder=f'bala-skating/{subfolder}',
+            quality='auto',
+            fetch_format='auto',
+        )
+        return result['secure_url']
+    else:
+        # Local fallback
+        folder_map = {
+            'gallery': app.config['UPLOAD_GALLERY'],
+            'stories': app.config['UPLOAD_STORIES'],
+        }
+        folder_path = folder_map.get(subfolder, app.config['UPLOAD_GALLERY'])
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(folder_path, filename)
+        img = Image.open(file)
+        img = img.convert('RGB')
+        img.thumbnail(max_size, Image.LANCZOS)
+        img.save(filepath, quality=85, optimize=True)
+        return filename
+
+
+def delete_image(value):
+    """Delete image from Cloudinary (if URL) or local disk (if filename)."""
+    if not value:
+        return
+    if value.startswith('http'):
+        try:
+            # Extract public_id from Cloudinary URL
+            part = value.split('/upload/')[-1]
+            part = re.sub(r'^v\d+/', '', part)   # strip version prefix
+            public_id = part.rsplit('.', 1)[0]    # strip extension
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
+    else:
+        # Local file — try both gallery and stories folders
+        for folder in [app.config['UPLOAD_GALLERY'], app.config['UPLOAD_STORIES']]:
+            path = os.path.join(folder, value)
+            if os.path.exists(path):
+                os.remove(path)
+                break
 
 
 def unique_slug(title, model):
@@ -82,16 +133,26 @@ def unique_slug(title, model):
 
 @app.context_processor
 def inject_site():
-    about_photo = 'images/about.jpg' if os.path.exists(
-        os.path.join(BASE_DIR, 'static', 'images', 'about.jpg')) else None
+    # Get about photo URL from DB setting, fall back to local file for dev
+    setting = SiteSetting.query.get('about_photo_url')
+    if setting and setting.value:
+        about_photo = setting.value          # Cloudinary URL
+        about_photo_is_url = True
+    elif os.path.exists(os.path.join(BASE_DIR, 'static', 'images', 'about.jpg')):
+        about_photo = 'images/about.jpg'     # local dev fallback
+        about_photo_is_url = False
+    else:
+        about_photo = None
+        about_photo_is_url = False
     return dict(
         site_name='Bala Skating Academy',
         site_phone='+91 91592 17517',
         site_address='Satellite City, Bypass Road, Kappalur, Tamil Nadu 625008',
-        site_timings='Monday – Sunday: 5:30 PM – 7:00 PM',
+        site_timings='Monday – Saturday: 5:30 PM – 7:00 PM',
         site_whatsapp='919159217517',
         now=datetime.utcnow(),
         about_photo=about_photo,
+        about_photo_is_url=about_photo_is_url,
         unread_count=Inquiry.query.filter_by(is_read=False).count() if app.config.get('SQLALCHEMY_DATABASE_URI') else 0
     )
 
@@ -174,17 +235,18 @@ def contact():
 # Admin – Site settings (about photo, etc.)
 # ---------------------------------------------------------------------------
 
-ABOUT_PHOTO_PATH = os.path.join(BASE_DIR, 'static', 'images', 'about.jpg')
-
 @app.route('/admin/settings/about-photo', methods=['POST'])
 @login_required
 def admin_upload_about_photo():
     file = request.files.get('about_photo')
     if file and allowed_file(file.filename):
-        img = Image.open(file)
-        img = img.convert('RGB')
-        img.thumbnail((900, 700), Image.LANCZOS)
-        img.save(ABOUT_PHOTO_PATH, quality=88, optimize=True)
+        url = upload_image(file, subfolder='about', max_size=(900, 700))
+        setting = SiteSetting.query.get('about_photo_url')
+        if setting:
+            setting.value = url
+        else:
+            db.session.add(SiteSetting(key='about_photo_url', value=url))
+        db.session.commit()
         flash('About photo updated!', 'success')
     else:
         flash('Please select a valid image file.', 'danger')
@@ -258,8 +320,8 @@ def admin_gallery_upload():
     uploaded = 0
     for file in files:
         if file and allowed_file(file.filename):
-            filename = save_image(file, app.config['UPLOAD_GALLERY'])
-            photo = Photo(filename=filename, caption=caption, category=category)
+            value = upload_image(file, subfolder='gallery')
+            photo = Photo(filename=value, caption=caption, category=category)
             db.session.add(photo)
             uploaded += 1
     db.session.commit()
@@ -271,9 +333,7 @@ def admin_gallery_upload():
 @login_required
 def admin_gallery_delete(photo_id):
     photo = Photo.query.get_or_404(photo_id)
-    filepath = os.path.join(app.config['UPLOAD_GALLERY'], photo.filename)
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    delete_image(photo.filename)
     db.session.delete(photo)
     db.session.commit()
     flash('Photo deleted.', 'success')
@@ -302,7 +362,7 @@ def admin_story_new():
         image_filename = ''
         file = request.files.get('image')
         if file and allowed_file(file.filename):
-            image_filename = save_image(file, app.config['UPLOAD_STORIES'])
+            image_filename = upload_image(file, subfolder='stories')
         slug = unique_slug(title, Story)
         story = Story(title=title, slug=slug, content=content,
                       category=category, is_featured=is_featured,
@@ -325,12 +385,8 @@ def admin_story_edit(story_id):
         story.is_featured = 'is_featured' in request.form
         file = request.files.get('image')
         if file and allowed_file(file.filename):
-            # Remove old image
-            if story.image_filename:
-                old = os.path.join(app.config['UPLOAD_STORIES'], story.image_filename)
-                if os.path.exists(old):
-                    os.remove(old)
-            story.image_filename = save_image(file, app.config['UPLOAD_STORIES'])
+            delete_image(story.image_filename)
+            story.image_filename = upload_image(file, subfolder='stories')
         db.session.commit()
         flash('Story updated!', 'success')
         return redirect(url_for('admin_stories'))
@@ -341,10 +397,7 @@ def admin_story_edit(story_id):
 @login_required
 def admin_story_delete(story_id):
     story = Story.query.get_or_404(story_id)
-    if story.image_filename:
-        filepath = os.path.join(app.config['UPLOAD_STORIES'], story.image_filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    delete_image(story.image_filename)
     db.session.delete(story)
     db.session.commit()
     flash('Story deleted.', 'success')

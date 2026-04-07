@@ -19,16 +19,26 @@ class Admin(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 
+class SiteSetting(db.Model):
+    """Key-value store for site-wide settings (e.g. about photo URL)."""
+    __tablename__ = 'site_settings'
+    key = db.Column(db.String(64), primary_key=True)
+    value = db.Column(db.Text, default='')
+
+
 class Photo(db.Model):
     __tablename__ = 'photos'
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(256), nullable=False)
+    # filename stores either a Cloudinary URL (production) or a local filename (dev)
+    filename = db.Column(db.String(512), nullable=False)
     caption = db.Column(db.String(256), default='')
     category = db.Column(db.String(64), default='general')  # general, event, achievement
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
     def url(self):
+        if self.filename.startswith('http'):
+            return self.filename
         return f'/static/uploads/gallery/{self.filename}'
 
 
@@ -38,16 +48,19 @@ class Story(db.Model):
     title = db.Column(db.String(256), nullable=False)
     slug = db.Column(db.String(256), unique=True, nullable=False)
     content = db.Column(db.Text, nullable=False)
-    image_filename = db.Column(db.String(256), default='')
+    # image_filename stores either a Cloudinary URL or a local filename
+    image_filename = db.Column(db.String(512), default='')
     category = db.Column(db.String(64), default='news')  # news, achievement, event
     is_featured = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
     def image_url(self):
-        if self.image_filename:
-            return f'/static/uploads/stories/{self.image_filename}'
-        return '/static/images/default-story.jpg'
+        if not self.image_filename:
+            return '/static/images/default-story.jpg'
+        if self.image_filename.startswith('http'):
+            return self.image_filename
+        return f'/static/uploads/stories/{self.image_filename}'
 
 
 class Program(db.Model):
