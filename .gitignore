@@ -1,0 +1,32 @@
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+
+# SQLite (dev only — not needed in prod)
+*.db
+*.sqlite3
+
+# Uploads (manage via cloud storage in prod if needed)
+static/uploads/gallery/*
+static/uploads/stories/*
+!static/uploads/gallery/.gitkeep
+!static/uploads/stories/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
