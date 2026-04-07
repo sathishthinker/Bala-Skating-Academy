@@ -1,0 +1,60 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if story %}Edit Story{% else %}New Story{% endif %}{% endblock %}
+{% block page_title %}{% if story %}Edit Story{% else %}New Story{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+  <form method="POST"
+        action="{{ url_for('admin_story_edit', story_id=story.id) if story else url_for('admin_story_new') }}"
+        enctype="multipart/form-data">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Title <span class="text-danger">*</span></label>
+          <input type="text" name="title" class="form-control form-control-lg"
+                 value="{{ story.title if story else '' }}" placeholder="Story title" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Content <span class="text-danger">*</span></label>
+          <textarea name="content" class="form-control" rows="12"
+                    placeholder="Write the full story content here…" required>{{ story.content if story else '' }}</textarea>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Category</label>
+          <select name="category" class="form-select">
+            {% for cat in ['news', 'achievement', 'event'] %}
+            <option value="{{ cat }}" {% if story and story.category == cat %}selected{% endif %}>{{ cat|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_featured" id="isFeatured"
+                   {% if story and story.is_featured %}checked{% endif %} />
+            <label class="form-check-label fw-medium" for="isFeatured">Featured on Homepage</label>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Cover Image</label>
+          {% if story and story.image_filename %}
+          <div class="mb-2">
+            <img src="{{ story.image_url }}" alt="Current image" class="img-fluid rounded" style="max-height:150px;" />
+            <small class="d-block text-muted mt-1">Upload a new image to replace</small>
+          </div>
+          {% endif %}
+          <input type="file" name="image" class="form-control" accept="image/*" />
+        </div>
+        <div class="d-grid gap-2 mt-4">
+          <button type="submit" class="btn btn-accent py-2">
+            <i class="bi bi-check2-circle me-2"></i>
+            {% if story %}Update Story{% else %}Publish Story{% endif %}
+          </button>
+          <a href="{{ url_for('admin_stories') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

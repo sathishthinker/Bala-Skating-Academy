@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Contact Us – Bala Skating Academy{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+  <div class="container text-center text-white" data-aos="fade-up">
+    <h1>Contact Us</h1>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb justify-content-center">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+        <li class="breadcrumb-item active">Contact</li>
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row g-5 align-items-start">
+
+      <!-- Contact Info -->
+      <div class="col-lg-5" data-aos="fade-right">
+        <span class="section-tag">Get in Touch</span>
+        <h2 class="section-title mt-2">We'd Love to Hear From You</h2>
+        <p class="text-muted mt-3">Whether you want to enroll, have questions about our programs, or just want to visit us — reach out and we'll respond as soon as possible.</p>
+
+        <ul class="contact-info-list mt-4">
+          <li>
+            <i class="bi bi-geo-alt-fill text-accent fs-4"></i>
+            <div>
+              <strong>Our Address</strong><br>
+              <span class="text-muted">Bala Skating Academy, Satellite City, Bypass Road, Kappalur, Tamil Nadu 625008</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-telephone-fill text-accent fs-4"></i>
+            <div>
+              <strong>Phone / WhatsApp</strong><br>
+              <a href="tel:+919159217517" class="text-muted">+91 91592 17517</a>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-clock-fill text-accent fs-4"></i>
+            <div>
+              <strong>Class Timings</strong><br>
+              <span class="text-muted">Monday – Sunday: 5:30 PM – 7:00 PM</span>
+            </div>
+          </li>
+          <li>
+            <i class="bi bi-person-fill text-accent fs-4"></i>
+            <div>
+              <strong>Head Coach &amp; Founder</strong><br>
+              <span class="text-muted">Bala Subramanian (15+ years experience)</span>
+            </div>
+          </li>
+        </ul>
+
+        <a href="https://wa.me/919159217517?text=Hi%2C%20I%20want%20to%20know%20more%20about%20Bala%20Skating%20Academy"
+           class="btn btn-success mt-3 px-4" target="_blank" rel="noopener">
+          <i class="bi bi-whatsapp me-2"></i>Message on WhatsApp
+        </a>
+      </div>
+
+      <!-- Inquiry Form -->
+      <div class="col-lg-7" data-aos="fade-left">
+        <div class="contact-form-card">
+          <h5 class="mb-4 fw-semibold">Send Us a Message</h5>
+          <form method="POST" action="{{ url_for('contact') }}" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" placeholder="Your name" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Phone Number</label>
+                <input type="tel" name="phone" class="form-control" placeholder="+91 XXXXX XXXXX" />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="your@email.com" />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium">Message <span class="text-danger">*</span></label>
+                <textarea name="message" class="form-control" rows="5"
+                  placeholder="Tell us about yourself, which program you're interested in, age of the student, etc." required></textarea>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-accent px-5 py-2">
+                  <i class="bi bi-send-fill me-2"></i>Send Message
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Map -->
+<section class="pb-5 bg-white">
+  <div class="container" data-aos="fade-up">
+    <div class="map-embed rounded-3 overflow-hidden shadow">
+      <iframe
+        src="https://www.google.com/maps?q=Satellite+City,+Bypass+Road,+Kappalur,+Tamil+Nadu+625008&output=embed"
+        width="100%" height="400" style="border:0;" allowfullscreen loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Inquiries{% endblock %}
+{% block page_title %}Contact Inquiries{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="text-muted mb-0">{{ inquiries|length }} total inquiries</p>
+  </div>
+
+  {% if inquiries %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Message</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inq in inquiries %}
+        <tr>
+          <td class="fw-medium">{{ inq.name }}</td>
+          <td>
+            {% if inq.phone %}
+            <a href="tel:{{ inq.phone }}">{{ inq.phone }}</a>
+            {% else %}–{% endif %}
+          </td>
+          <td>
+            {% if inq.email %}
+            <a href="mailto:{{ inq.email }}">{{ inq.email }}</a>
+            {% else %}–{% endif %}
+          </td>
+          <td style="max-width:280px;">
+            <small class="text-muted">{{ inq.message[:100] }}{% if inq.message|length > 100 %}…{% endif %}</small>
+          </td>
+          <td><small class="text-muted">{{ inq.created_at.strftime('%d %b %Y, %I:%M %p') }}</small></td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_inquiry_delete', inquiry_id=inq.id) }}"
+                  onsubmit="return confirm('Delete this inquiry?')">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-envelope-open display-4"></i>
+    <p class="mt-2">No inquiries yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

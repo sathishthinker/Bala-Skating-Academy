@@ -1,0 +1,65 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Programs{% endblock %}
+{% block page_title %}Programs Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <p class="text-muted mb-0">{{ programs|length }} programs</p>
+  <a href="{{ url_for('admin_program_new') }}" class="btn btn-accent">
+    <i class="bi bi-plus-circle me-2"></i>New Program
+  </a>
+</div>
+
+<div class="admin-card">
+  {% if programs %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Age Group</th>
+          <th>Batch Time</th>
+          <th>Fee</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for program in programs %}
+        <tr>
+          <td class="text-muted">{{ program.display_order }}</td>
+          <td class="fw-medium">{{ program.name }}</td>
+          <td>{{ program.age_group }}</td>
+          <td><small>{{ program.batch_time }}</small></td>
+          <td class="text-accent fw-semibold">{{ program.fee }}</td>
+          <td>
+            {% if program.is_active %}
+            <span class="badge bg-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('admin_program_edit', program_id=program.id) }}"
+                 class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+              <form method="POST" action="{{ url_for('admin_program_delete', program_id=program.id) }}"
+                    onsubmit="return confirm('Delete this program?')">
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-person-lines-fill display-4"></i>
+    <p class="mt-2">No programs yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

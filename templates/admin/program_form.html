@@ -1,0 +1,59 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{% if program %}Edit Program{% else %}New Program{% endif %}{% endblock %}
+{% block page_title %}{% if program %}Edit Program{% else %}New Program{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width:640px;">
+  <form method="POST"
+        action="{{ url_for('admin_program_edit', program_id=program.id) if program else url_for('admin_program_new') }}">
+    <div class="mb-3">
+      <label class="form-label fw-medium">Program Name <span class="text-danger">*</span></label>
+      <input type="text" name="name" class="form-control" value="{{ program.name if program else '' }}" required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-medium">Description</label>
+      <textarea name="description" class="form-control" rows="4">{{ program.description if program else '' }}</textarea>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-medium">Age Group</label>
+        <input type="text" name="age_group" class="form-control"
+               value="{{ program.age_group if program else '' }}" placeholder="e.g. 5 – 10 years" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-medium">Monthly Fee</label>
+        <input type="text" name="fee" class="form-control"
+               value="{{ program.fee if program else '' }}" placeholder="e.g. ₹500 / month" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-medium">Duration</label>
+        <input type="text" name="duration" class="form-control"
+               value="{{ program.duration if program else '' }}" placeholder="e.g. 3 months" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-medium">Batch Time</label>
+        <input type="text" name="batch_time" class="form-control"
+               value="{{ program.batch_time if program else '5:30 PM – 7:00 PM' }}" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-medium">Display Order</label>
+        <input type="number" name="display_order" class="form-control"
+               value="{{ program.display_order if program else 0 }}" min="0" />
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                 {% if not program or program.is_active %}checked{% endif %} />
+          <label class="form-check-label fw-medium" for="isActive">Active (visible on site)</label>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-3 mt-4">
+      <button type="submit" class="btn btn-accent px-5">
+        {% if program %}Update{% else %}Add Program{% endif %}
+      </button>
+      <a href="{{ url_for('admin_programs') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

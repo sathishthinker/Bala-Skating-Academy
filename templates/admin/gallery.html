@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Gallery{% endblock %}
+{% block page_title %}Gallery Management{% endblock %}
+
+{% block content %}
+<!-- Upload Form -->
+<div class="admin-card mb-4">
+  <h6 class="admin-card-title"><i class="bi bi-cloud-upload text-accent me-2"></i>Upload Photos</h6>
+  <form method="POST" action="{{ url_for('admin_gallery_upload') }}" enctype="multipart/form-data" class="mt-3">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-medium">Photos</label>
+        <input type="file" name="photos" class="form-control" accept="image/*" multiple required />
+        <small class="text-muted">JPG, PNG, WebP — max 16 MB each. Multiple files allowed.</small>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-medium">Caption</label>
+        <input type="text" name="caption" class="form-control" placeholder="Optional caption" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-medium">Category</label>
+        <select name="category" class="form-select">
+          <option value="general">General</option>
+          <option value="event">Event</option>
+          <option value="achievement">Achievement</option>
+          <option value="training">Training</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-accent w-100">
+          <i class="bi bi-upload me-1"></i> Upload
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Photos Grid -->
+<div class="admin-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="admin-card-title mb-0"><i class="bi bi-images text-accent me-2"></i>All Photos ({{ photos|length }})</h6>
+  </div>
+
+  {% if photos %}
+  <div class="admin-gallery-grid">
+    {% for photo in photos %}
+    <div class="admin-gallery-item">
+      <img src="{{ photo.url }}" alt="{{ photo.caption }}" loading="lazy" />
+      <div class="admin-gallery-overlay">
+        <span class="badge bg-dark bg-opacity-75 mb-1">{{ photo.category }}</span>
+        {% if photo.caption %}<p class="small text-white mb-2">{{ photo.caption }}</p>{% endif %}
+        <form method="POST" action="{{ url_for('admin_gallery_delete', photo_id=photo.id) }}"
+              onsubmit="return confirm('Delete this photo?')">
+          <button class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i> Delete</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-images display-4"></i>
+    <p class="mt-2">No photos uploaded yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

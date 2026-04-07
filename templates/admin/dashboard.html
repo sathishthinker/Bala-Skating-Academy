@@ -1,0 +1,112 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card bg-primary text-white">
+      <div class="stat-icon"><i class="bi bi-images"></i></div>
+      <div class="stat-info">
+        <div class="stat-num">{{ stats.photos }}</div>
+        <div class="stat-label">Photos</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card bg-success text-white">
+      <div class="stat-icon"><i class="bi bi-newspaper"></i></div>
+      <div class="stat-info">
+        <div class="stat-num">{{ stats.stories }}</div>
+        <div class="stat-label">Stories</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card bg-warning text-white">
+      <div class="stat-icon"><i class="bi bi-person-lines-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-num">{{ stats.programs }}</div>
+        <div class="stat-label">Active Programs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card bg-danger text-white">
+      <div class="stat-icon"><i class="bi bi-envelope-fill"></i></div>
+      <div class="stat-info">
+        <div class="stat-num">{{ stats.inquiries }}</div>
+        <div class="stat-label">Inquiries
+          {% if stats.unread %}<span class="badge bg-white text-danger ms-1">{{ stats.unread }} new</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <h6 class="admin-card-title"><i class="bi bi-lightning-fill text-accent me-2"></i>Quick Actions</h6>
+      <div class="d-grid gap-2 mt-3">
+        <a href="{{ url_for('admin_gallery') }}" class="btn btn-outline-primary">
+          <i class="bi bi-cloud-upload me-2"></i>Upload Photos
+        </a>
+        <a href="{{ url_for('admin_story_new') }}" class="btn btn-outline-success">
+          <i class="bi bi-plus-circle me-2"></i>Add Story
+        </a>
+        <a href="{{ url_for('admin_program_new') }}" class="btn btn-outline-warning">
+          <i class="bi bi-plus-circle me-2"></i>Add Program
+        </a>
+        <a href="{{ url_for('admin_inquiries') }}" class="btn btn-outline-danger">
+          <i class="bi bi-envelope-open me-2"></i>View Inquiries
+          {% if stats.unread %}<span class="badge bg-danger ms-1">{{ stats.unread }}</span>{% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Inquiries -->
+  <div class="col-lg-8">
+    <div class="admin-card h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="admin-card-title"><i class="bi bi-envelope text-accent me-2"></i>Recent Inquiries</h6>
+        <a href="{{ url_for('admin_inquiries') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      {% if recent_inquiries %}
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inq in recent_inquiries %}
+            <tr>
+              <td class="fw-medium">{{ inq.name }}</td>
+              <td>{{ inq.phone or '–' }}</td>
+              <td><small class="text-muted">{{ inq.created_at.strftime('%d %b %Y') }}</small></td>
+              <td>
+                {% if not inq.is_read %}
+                <span class="badge bg-danger">New</span>
+                {% else %}
+                <span class="badge bg-secondary">Read</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mt-3">No inquiries yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
