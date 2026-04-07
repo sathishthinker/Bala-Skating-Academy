@@ -444,6 +444,8 @@ def init_db():
         db.session.commit()
 
 
+# Run init_db at import time so gunicorn workers also initialise the DB
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
